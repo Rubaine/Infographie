@@ -23,6 +23,22 @@ struct Point{
 };
 typedef struct Surface SURFACE;
 
+int min(int a, int b, int c, int d) {
+    int min = a;
+    if (b < min) min = b;
+    if (c < min) min = c;
+    if (d < min) min = d;
+    return min;
+}
+
+int max(int a, int b, int c, int d) {
+    int max = a;
+    if (b > max) max = b;
+    if (c > max) max = c;
+    if (d > max) max = d;
+    return max;
+}
+
 void surface(SURFACE *s,int width,int height){
     s->data = (struct Pixel *)malloc(width*height*sizeof(struct Pixel));
     if(s->data != NULL){
@@ -105,8 +121,8 @@ int ppm_read(SURFACE *s, FILE *f) {
 }
 
 void draw_rectangle(SURFACE *s, int x1, int y1, int x2, int y2, struct Pixel color) {
-    if (x1 < 0 || x1 >= s->width || y1 < 0 || y1 >= s->height ||
-        x2 < 0 || x2 >= s->width || y2 < 0 || y2 >= s->height) {
+    if (x1 < 0 || x1 > s->width || y1 < 0 || y1 > s->height ||
+        x2 < 0 || x2 > s->width || y2 < 0 || y2 > s->height) {
         printf("Error: invalid coordinates");
         exit(EXIT_FAILURE);
     }
@@ -136,28 +152,6 @@ void draw_point(SURFACE *s, struct Point p, struct Pixel color) {
 
     if (x >= 0 && x < s->width && y >= 0 && y < s->height) {
         s->data[y * s->width + x] = color;
-    }
-}
-
-void cercle(SURFACE *s,int r, int centreX, int centreY,struct Pixel couleur){
-    for(double t=0;t<6.29;t+=1.0/r){
-        double x=(int)(centreX+r*cos(t));
-        double y=(int)(centreY+r*sin(t));
-        struct Point p;
-        p.x = x;
-        p.y = y;
-        draw_point(s,p,couleur);
-    }
-}
-
-void coubre_bezier(SURFACE *s,struct Point P1,struct Point P2,struct Point P3,struct Point P4, int N,struct Pixel couleur){
-    for(double t=0;t<1;t+=1.0/N){
-        double x= P1.x*pow((1-t),3) + 3*P2.x*t*pow((1-t),2)+ 3*P3.x*pow(t,2)*(1-t) + P4.x*pow(t,3);
-        double y= P1.y*pow((1-t),3) + 3*P2.y*t*pow((1-t),2)+ 3*P3.y*pow(t,2)*(1-t) + P4.y*pow(t,3);
-        struct Point p;
-        p.x = x;
-        p.y = y;
-        draw_point(s,p,couleur);
     }
 }
 
@@ -212,15 +206,62 @@ void draw_triangle(SURFACE *s, struct Point p1, struct Point p2, struct Point p3
     draw_line(s, p2, p3, color);
     draw_line(s, p3, p1, color);
 }
+void cercle(SURFACE *s,int r, int centreX, int centreY,struct Pixel couleur){
+    for(double t=0;t<6.29;t+=1.0/r){
+        double x=(int)(centreX+r*cos(t));
+        double y=(int)(centreY+r*sin(t));
+        struct Point p;
+        p.x = x;
+        p.y = y;
+        draw_point(s,p,couleur);
+    }
+}
+
+void courbe_bezier(SURFACE *s,struct Point P1,struct Point P2,struct Point P3,struct Point P4, int N,struct Pixel couleur){
+    for(double t=0;t<1;t+=1.0/N){
+        double x= P1.x*pow((1-t),3) + 3*P2.x*t*pow((1-t),2)+ 3*P3.x*pow(t,2)*(1-t) + P4.x*pow(t,3);
+        double y= P1.y*pow((1-t),3) + 3*P2.y*t*pow((1-t),2)+ 3*P3.y*pow(t,2)*(1-t) + P4.y*pow(t,3);
+        struct Point p;
+        p.x = x;
+        p.y = y;
+        draw_point(s,p,couleur);
+    }
+}
+
+void _fill(SURFACE *s, struct Point P1, struct Point P2, struct Point P3, struct Point P4, struct Pixel targetColor, struct Pixel fillColor) {
+    int min_y = min(P1.y, P2.y, P3.y, P4.y);
+    int max_y = max(P1.y, P2.y, P3.y, P4.y);
+
+    for (int i = min_y; i < max_y; ++i) {
+        if (s->data[i].red == targetColor.red && s->data[i].green == targetColor.green && s->data[i].blue == targetColor.blue) {
+            s->data[i] = fillColor;
+        }
+    }
+}
+
+
 
 int main(){
     SURFACE surf;
     surface(&surf,1000,1000);
     assert(surf.data != NULL);
 
-    struct Pixel fillColor = {0,0,0};
+    struct Pixel sky = {173,252,252};
+    struct Pixel sand = {236,209,161};
+    struct Pixel foam = {255,255,255};
+    struct Point P1 = {170,1000};
+    struct Point P2 = {570,880};
+    struct Point P3 = {270,795};
+    struct Point P4 = {420,735};
+    struct Point P5 = {474,665};
+    struct Point P6 = {267,614};
+    struct Point P7 = {374,518};
     
-    fill(&surf,fillColor);
+    fill(&surf,sky);
+    draw_rectangle(&surf,0,500,1000,1000,sand);
+    courbe_bezier(&surf,P1,P2,P3,P4,2000,foam);
+    courbe_bezier(&surf,P4,P5,P6,P7,2000,foam);
+    _fill(&surf,P1,P2,P3,P4,sand,sky);
 
     FILE *output = fopen("draw.ppm","w");
     assert(output != NULL);
