@@ -5,11 +5,12 @@
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
+#include "perlin.c"
 
 struct Pixel{
-    int red;
-    int green;
-    int blue;
+    float red;
+    float green;
+    float blue;
 };
 struct Surface{
     int width;
@@ -228,18 +229,34 @@ void courbe_bezier(SURFACE *s,struct Point P1,struct Point P2,struct Point P3,st
     }
 }
 
-void _fill(SURFACE *s, struct Point P1, struct Point P2, struct Point P3, struct Point P4, struct Pixel targetColor, struct Pixel fillColor) {
-    int min_y = min(P1.y, P2.y, P3.y, P4.y);
-    int max_y = max(P1.y, P2.y, P3.y, P4.y);
-
-    for (int i = min_y; i < max_y; ++i) {
-        if (s->data[i].red == targetColor.red && s->data[i].green == targetColor.green && s->data[i].blue == targetColor.blue) {
-            s->data[i] = fillColor;
+void _fill(SURFACE *s, struct Pixel targetColor,struct Pixel fillColor, int startY, int endY) {
+    for (int y = startY; y < endY; y++) {
+        for (int x = 0; x < s->width; x++) {
+            struct Pixel *currentPixel = &s->data[y * s->width + x];
+            if (currentPixel->red == targetColor.red && currentPixel->green == targetColor.green && currentPixel->blue == targetColor.blue) {
+                *currentPixel = fillColor;
+            } else {
+                break; 
+            }
         }
     }
 }
 
+void apply_perlin_noise(SURFACE *s, struct Pixel targetColor, int startY, int endY,float freq,int depth) {
+    for (int y = startY; y < endY; y++) {
+        for (int x = 0; x < s->width; x++) {
+            struct Pixel *currentPixel = &s->data[y * s->width + x];
+            if (currentPixel->red == targetColor.red && currentPixel->green == targetColor.green && currentPixel->blue == targetColor.blue) {
+                float noise = perlin2d(x, y, freq, depth);
+                currentPixel->red = ((unsigned int)((1+noise)*127.5) + currentPixel->red)/2;
+                currentPixel->green = ((unsigned int)((1+noise)*127.5) + currentPixel->green)/2;
+                currentPixel->blue = ((unsigned int)((1+noise)*127.5) + currentPixel->blue)/2;
+            }
+        }
+    }
+}
 
+    
 
 int main(){
     SURFACE surf;
@@ -249,19 +266,21 @@ int main(){
     struct Pixel sky = {173,252,252};
     struct Pixel sand = {236,209,161};
     struct Pixel foam = {255,255,255};
-    struct Point P1 = {170,1000};
-    struct Point P2 = {570,880};
+    struct Pixel water = {106,226,204};
+    struct Point P1 = {167,1000};
+    struct Point P2 = {580,871};
     struct Point P3 = {270,795};
-    struct Point P4 = {420,735};
-    struct Point P5 = {474,665};
-    struct Point P6 = {267,614};
-    struct Point P7 = {374,518};
+    struct Point P4 = {437,734};
+    struct Point P5 = {534,667};
+    struct Point P6 = {394,559};
+    struct Point P7 = {473,500};
     
     fill(&surf,sky);
     draw_rectangle(&surf,0,500,1000,1000,sand);
     courbe_bezier(&surf,P1,P2,P3,P4,2000,foam);
     courbe_bezier(&surf,P4,P5,P6,P7,2000,foam);
-    _fill(&surf,P1,P2,P3,P4,sand,sky);
+    _fill(&surf,sand,water,500,1000);
+    apply_perlin_noise(&surf,water,500,1000,0.2,3);
 
     FILE *output = fopen("draw.ppm","w");
     assert(output != NULL);
