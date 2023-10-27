@@ -40,6 +40,20 @@ int max(int a, int b, int c, int d) {
     return max;
 }
 
+typedef struct elem_pile elem_pile;
+struct elem_pile {
+    int coord_x;
+    int coord_y;
+    elem_pile *precedent;
+} ;
+
+typedef struct pile pile;
+struct pile {
+    elem_pile *premier;
+    elem_pile *dernier;
+} ;
+
+
 void surface(SURFACE *s,int width,int height){
     s->data = (struct Pixel *)malloc(width*height*sizeof(struct Pixel));
     if(s->data != NULL){
@@ -47,6 +61,60 @@ void surface(SURFACE *s,int width,int height){
         s->height = height;
         s->depth = RAND_MAX;
     }
+}
+
+pile creer_pile(){
+    pile *p = (pile *)malloc(sizeof(pile));
+    p->dernier = NULL;
+    p->premier = NULL;
+    elem_pile *elem_pile = malloc(sizeof(*elem_pile));
+    if(p == NULL && elem_pile == NULL){
+        exit(EXIT_FAILURE);
+    }
+    return *p;
+}
+
+int pile_vide(pile p){
+    if (&p == NULL){
+        return 1;
+    }
+    return 0;
+}
+
+void empile(pile *p, int x, int y){
+    int a = pile_vide(*p);
+    if (a == 1){
+        exit(EXIT_FAILURE);
+    }
+    elem_pile *nouv = malloc(sizeof(*nouv));
+    nouv->coord_x = x;
+    nouv->coord_y = y;
+    nouv->precedent = p->premier;
+    if (p->premier == NULL && p->dernier == NULL){
+        p->dernier = nouv;
+    }
+    p->premier = nouv;
+}
+
+void sommet(pile p, int *x, int *y){
+    int a = pile_vide(p);
+    if (a == 1){
+        exit(EXIT_FAILURE); 
+    }
+    elem_pile *premier = p.premier;
+    *x = premier->coord_x;
+    *y = premier->coord_y;
+
+}
+
+void depile(pile *p){  
+    int a = pile_vide(*p);
+    if (a == 1){
+        exit(EXIT_FAILURE);
+    }   
+    elem_pile *suppr = p->premier;
+    p->premier = p->premier->precedent;
+    free(suppr); 
 }
 
 void free_surface(SURFACE *s){
@@ -87,6 +155,8 @@ int ppm_write(SURFACE *s, FILE *f) {
     return count;
 }
 
+
+/*
 int ppm_read(SURFACE *s, FILE *f) {
     if (fgetc(f) != 'P') return 0;
     if (fgetc(f) != '3') return 0;
@@ -120,19 +190,20 @@ int ppm_read(SURFACE *s, FILE *f) {
     *s = surf;
     return 1;
 }
+*/
 
 void linear_gradient(struct Pixel startColor, struct Pixel endColor, int x, int y, SURFACE *s) {
-    float stepR = (endColor.red - startColor.red) / (float)width;
-    float stepG = (endColor.green - startColor.green) / (float)width;
-    float stepB = (endColor.blue - startColor.blue) / (float)width;
+    float stepR = (endColor.red - startColor.red) / (float)s->width;
+    float stepG = (endColor.green - startColor.green) / (float)s->width;
+    float stepB = (endColor.blue - startColor.blue) / (float)s->width;
 
-    for (int i = y; i < y + height; ++i) {
+    for (int i = y; i < y + s->height; ++i) {
         struct Pixel currentColor;
         currentColor.red = (unsigned char)(startColor.red + stepR * (i - x));
         currentColor.green = (unsigned char)(startColor.green + stepG * (i - x));
         currentColor.blue = (unsigned char)(startColor.blue + stepB * (i - x));
 
-        for (int j = x; j < x + width; ++j) {
+        for (int j = x; j < x + s->width; ++j) {
             s->data[j * s->width + i] = currentColor;
         }
     }
@@ -167,7 +238,6 @@ void draw_rectangle(SURFACE *s, int x1, int y1, int x2, int y2, struct Pixel col
 void draw_point(SURFACE *s, struct Point p, struct Pixel color) {
     int x = (int)p.x;
     int y = (int)p.y;
-
     if (x >= 0 && x < s->width && y >= 0 && y < s->height) {
         s->data[y * s->width + x] = color;
     }
@@ -278,6 +348,29 @@ void fill_vert(SURFACE *s, struct Pixel targetColor, struct Pixel fillColor, int
     }
 }
 
+void remplir(SURFACE *s,struct Pixel color, struct Point p_act){
+    pile p = creer_pile();
+    empile(&p,p_act.x,p_act.y);
+    int x_act,y_act;
+    while(p.premier != NULL){
+        
+        sommet(p,&(x_act),&(y_act));
+        p_act.x = x_act;
+        p_act.y = y_act;
+        depile(&p);
+        draw_point(s,p_act,color);
+        int dy[] = {-1,1,0,0};
+        int dx[] = {0,0,-1,1};
+        for(int i =0;i < 4; i++){
+            int x_nouv = x_act + dx[i];
+            int y_nouv = y_act + dy[i];
+            struct Pixel *currentPixel = &s->data[y_nouv * s->width + x_nouv];
+            if(currentPixel->red != color.red || currentPixel->green != color.green || currentPixel->blue != color.blue){
+                empile(&p,x_nouv,y_nouv);
+            }
+        }
+    }
+}
 
 
 // void apply_perlin_noise(SURFACE *s, struct Pixel targetColor, int startY, int endY,float freq,int depth) {
@@ -300,26 +393,47 @@ int main(){
     SURFACE surf;
     surface(&surf,1000,1000);
     assert(surf.data != NULL);
-
     struct Pixel sky = {99,201,250};
     struct Pixel sky2 = {223,247,251};
     struct Pixel sand = {241,170,80};
     struct Pixel foam = {255,255,255};
     struct Pixel water1 = {9,153,226};
     struct Pixel water2 = {25,192,234};
+    struct Pixel light_water = {225,225,255};
+    struct Pixel grey = {125,125,125};
+    struct Pixel brown = {97,51,10};
     struct Point P1 = {0,701}; struct Point P2 = {196,728}; struct Point P3 = {280,802}; struct Point P4 = {385,726}; struct Point P5 = {527,678}; struct Point P6 = {583,768}; struct Point P7 = {735,654}; struct Point P8 = {787,614}; struct Point P9 = {930,724}; struct Point P10 = {1000,591};
     struct Point P11 = {0,696}; struct Point P12 = {174,664}; struct Point P13 = {282,718}; struct Point P14 = {385,721};
-
+    struct Point P15 = {230,689}; struct Point P16 = {230,679}; struct Point P17 = {270,679}; struct Point P18 = {270,689}; struct Point P19 = {230,699}; struct Point P20 = {270,699}; struct Point P21 = {249,687};
+    struct Point I1 = {529,457};
+    struct Point I2 = {529,407};
+    struct Point I3 = {799,409};
+    struct Point I4 = {799,469};
+    struct Point I5 = {519,447};
+    struct Point I6 = {519,397};
+    struct Point I7 = {809,399};
+    struct Point I8 = {809,459};
+    struct Point R2 = {635,441};
+    struct Point L1 = {550,449};
+    struct Point L2 = {760,449};
     fill(&surf,sky);
-    linear_gradient(sky,sky2,surf.width,surf.height,0,0,&surf);
+    linear_gradient(sky,sky2,0,0,&surf);
     draw_rectangle(&surf,0,450,1000,1000,sand);
     courbe_bezier_epaisse(&surf,P1,P2,P3,P4,5000,foam,10);
     courbe_bezier_epaisse(&surf,P4,P5,P6,P7,5000,foam,10);
     courbe_bezier_epaisse(&surf,P7,P8,P9,P10,5000,foam,10);
     // courbe_bezier_epaisse(&surf,P11,P12,P13,P14,5000,water2,10);
+    
+    courbe_bezier_epaisse(&surf,I5,I6,I7,I8,5000,brown,5);
+    courbe_bezier_epaisse(&surf,I1,I2,I3,I4,5000,sand,10);
+    
     fill_vert(&surf,foam,water1,0,1000,450,1000);
-   
-
+    
+    courbe_bezier(&surf,P15,P16,P17,P18,5000,light_water);
+    courbe_bezier(&surf,P15,P19,P20,P18,5000,light_water);
+    remplir(&surf,light_water,P21);
+    draw_line(&surf,L1,L2,sand);
+    remplir(&surf,sand,R2);
     FILE *output = fopen("draw.ppm","w");
     assert(output != NULL);
     ppm_write(&surf,output);
