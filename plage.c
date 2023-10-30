@@ -348,6 +348,35 @@ void fill_vert(SURFACE *s, struct Pixel targetColor, struct Pixel fillColor, int
     }
 }
 
+void degrade_vers_blanc_bas(SURFACE *s,struct Point P1, struct Point P2,int n,struct Pixel color){
+    //n correspond au nombre de pixels dont on veut le dégradé 
+    int x_min = P1.x;
+    int y_min = P1.y;
+    int x_max = P2.x;
+    int y_max = P2.y;
+    double facteur_ammortissement = 1.55    ;
+    for(int i = x_min;i<x_max;i++){
+        int temp;
+        for(int j =y_min; j< y_max;j++){
+            struct Pixel *currentPixel = &s->data[j * s->width + i];
+            if(currentPixel->red == color.red && currentPixel->green == color.green && currentPixel->blue == color.blue){
+                temp = j;
+                }
+            }
+        double rouge = (255-color.red)/n;
+        double vert = (255-color.green)/n;
+        double bleu = (255-color.blue)/n;
+        for(int k = 0;k<n;k++){
+            struct Pixel *currentPixel = &s->data[(temp-k) * s->width + i]; 
+            struct Pixel PIX = {color.red + rouge*(n-k)/facteur_ammortissement,color.green + vert*(n-k)/facteur_ammortissement,+ color.blue + bleu*(n-k)/facteur_ammortissement};
+            if(currentPixel->red == color.red && currentPixel->green == color.green && currentPixel->blue == color.blue){
+                struct Point P = {i,temp-k};
+                draw_point(s,P,PIX);
+            }
+        } 
+    }
+}
+
 void remplir(SURFACE *s,struct Pixel color, struct Point p_act){
     pile p = creer_pile();
     empile(&p,p_act.x,p_act.y);
@@ -404,18 +433,18 @@ int main(){
     struct Pixel brown = {97,51,10};
     struct Point P1 = {0,701}; struct Point P2 = {196,728}; struct Point P3 = {280,802}; struct Point P4 = {385,726}; struct Point P5 = {527,678}; struct Point P6 = {583,768}; struct Point P7 = {735,654}; struct Point P8 = {787,614}; struct Point P9 = {930,724}; struct Point P10 = {1000,591};
     struct Point P11 = {0,696}; struct Point P12 = {174,664}; struct Point P13 = {282,718}; struct Point P14 = {385,721};
-    struct Point P15 = {230,689}; struct Point P16 = {230,679}; struct Point P17 = {270,679}; struct Point P18 = {270,689}; struct Point P19 = {230,699}; struct Point P20 = {270,699}; struct Point P21 = {249,687};
-    struct Point I1 = {529,457};
-    struct Point I2 = {529,407};
-    struct Point I3 = {799,409};
-    struct Point I4 = {799,469};
-    struct Point I5 = {519,447};
-    struct Point I6 = {519,397};
-    struct Point I7 = {809,399};
-    struct Point I8 = {809,459};
-    struct Point R2 = {635,441};
-    struct Point L1 = {550,449};
-    struct Point L2 = {760,449};
+    struct Point P15 = {230,689}; struct Point P16 = {230,679}; struct Point P17 = {270,679}; struct Point P18 = {270,689}; struct Point P19 = {230,699}; struct Point P20 = {270,699}; 
+    struct Point I1 = {529,457}; struct Point I2 = {529,407}; struct Point I3 = {799,409}; struct Point I4 = {799,469}; struct Point I5 = {519,447}; struct Point I6 = {519,397}; struct Point I7 = {809,399}; struct Point I8 = {809,459}; 
+    struct Point R1 = {249,687}; struct Point R2 = {635,441}; struct Point R3 = {602,364};
+    struct Point L1 = {550,449}; struct Point L2 = {760,449};
+    struct Point P21 = {0,450};
+    struct Point P22 = {999,750};
+
+    struct Point P23 = {608,408};
+    struct Point P24 = {572,287};
+    struct Point P25 = {595,289};
+    struct Point P26 = {618,409};
+
     fill(&surf,sky);
     linear_gradient(sky,sky2,0,0,&surf);
     draw_rectangle(&surf,0,450,1000,1000,sand);
@@ -423,17 +452,18 @@ int main(){
     courbe_bezier_epaisse(&surf,P4,P5,P6,P7,5000,foam,10);
     courbe_bezier_epaisse(&surf,P7,P8,P9,P10,5000,foam,10);
     // courbe_bezier_epaisse(&surf,P11,P12,P13,P14,5000,water2,10);
-    
     courbe_bezier_epaisse(&surf,I5,I6,I7,I8,5000,brown,5);
     courbe_bezier_epaisse(&surf,I1,I2,I3,I4,5000,sand,10);
     
     fill_vert(&surf,foam,water1,0,1000,450,1000);
-    
+    degrade_vers_blanc_bas(&surf,P21,P22,150,water1);
     courbe_bezier(&surf,P15,P16,P17,P18,5000,light_water);
     courbe_bezier(&surf,P15,P19,P20,P18,5000,light_water);
-    remplir(&surf,light_water,P21);
+    remplir(&surf,light_water,R1);
     draw_line(&surf,L1,L2,sand);
     remplir(&surf,sand,R2);
+    courbe_bezier(&surf,P23,P24,P25,P26,5000,brown);
+    remplir(&surf,  brown,R3);   
     FILE *output = fopen("draw.ppm","w");
     assert(output != NULL);
     ppm_write(&surf,output);
