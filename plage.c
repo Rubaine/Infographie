@@ -294,6 +294,7 @@ void draw_triangle(SURFACE *s, struct Point p1, struct Point p2, struct Point p3
     draw_line(s, p2, p3, color);
     draw_line(s, p3, p1, color);
 }
+
 void cercle(SURFACE *s,int r, int centreX, int centreY,struct Pixel couleur){
     for(double t=0;t<6.29;t+=1.0/r){
         double x=(int)(centreX+r*cos(t));
@@ -354,7 +355,7 @@ void degrade_vers_blanc_bas(SURFACE *s,struct Point P1, struct Point P2,int n,st
     int y_min = P1.y;
     int x_max = P2.x;
     int y_max = P2.y;
-    double facteur_ammortissement = 1.55    ;
+    double facteur_ammortissement = 1.55;
     for(int i = x_min;i<x_max;i++){
         int temp;
         for(int j =y_min; j< y_max;j++){
@@ -422,6 +423,8 @@ int main(){
     SURFACE surf;
     surface(&surf,1000,1000);
     assert(surf.data != NULL);
+
+    // Couleurs
     struct Pixel sky = {99,201,250};
     struct Pixel sky2 = {223,247,251};
     struct Pixel sand = {241,170,80};
@@ -431,9 +434,11 @@ int main(){
     struct Pixel light_water = {225,225,255};
     struct Pixel grey = {125,125,125};
     struct Pixel brown = {97,51,10};
+
     struct Point P1 = {0,701}; struct Point P2 = {196,728}; struct Point P3 = {280,802}; struct Point P4 = {385,726}; struct Point P5 = {527,678}; struct Point P6 = {583,768}; struct Point P7 = {735,654}; struct Point P8 = {787,614}; struct Point P9 = {930,724}; struct Point P10 = {1000,591};
     struct Point P11 = {0,696}; struct Point P12 = {174,664}; struct Point P13 = {282,718}; struct Point P14 = {385,721};
     struct Point P15 = {230,689}; struct Point P16 = {230,679}; struct Point P17 = {270,679}; struct Point P18 = {270,689}; struct Point P19 = {230,699}; struct Point P20 = {270,699}; 
+    
     struct Point I1 = {529,457}; struct Point I2 = {529,407}; struct Point I3 = {799,409}; struct Point I4 = {799,469}; struct Point I5 = {519,447}; struct Point I6 = {519,397}; struct Point I7 = {809,399}; struct Point I8 = {809,459}; 
     struct Point R1 = {249,687}; struct Point R2 = {635,441}; struct Point R3 = {602,364};
     struct Point L1 = {550,449}; struct Point L2 = {760,449};
@@ -445,25 +450,39 @@ int main(){
     struct Point P25 = {595,289};
     struct Point P26 = {618,409};
 
+    // Remplissage du ciel avec dégradé
     fill(&surf,sky);
     linear_gradient(sky,sky2,0,0,&surf);
+
+    // Création d'un rectangle pour le sable
     draw_rectangle(&surf,0,450,1000,1000,sand);
+
+    // Tracé du bord de l'eau
     courbe_bezier_epaisse(&surf,P1,P2,P3,P4,5000,foam,10);
     courbe_bezier_epaisse(&surf,P4,P5,P6,P7,5000,foam,10);
     courbe_bezier_epaisse(&surf,P7,P8,P9,P10,5000,foam,10);
-    // courbe_bezier_epaisse(&surf,P11,P12,P13,P14,5000,water2,10);
-    courbe_bezier_epaisse(&surf,I5,I6,I7,I8,5000,brown,5);
-    courbe_bezier_epaisse(&surf,I1,I2,I3,I4,5000,sand,10);
-    
+
+    // Remplissage de l'eau et dégradé
     fill_vert(&surf,foam,water1,0,1000,450,1000);
     degrade_vers_blanc_bas(&surf,P21,P22,150,water1);
+
+    // Sphères à la surface de l'eau
     courbe_bezier(&surf,P15,P16,P17,P18,5000,light_water);
     courbe_bezier(&surf,P15,P19,P20,P18,5000,light_water);
     remplir(&surf,light_water,R1);
+
+    // Tracé de l'île
+    courbe_bezier_epaisse(&surf,I5,I6,I7,I8,5000,brown,5);
+    courbe_bezier_epaisse(&surf,I1,I2,I3,I4,5000,sand,10);
     draw_line(&surf,L1,L2,sand);
     remplir(&surf,sand,R2);
+    
+    // Tracé de l'arbre
     courbe_bezier(&surf,P23,P24,P25,P26,5000,brown);
     remplir(&surf,  brown,R3);   
+
+    // Ecriture dans le fichier 
+
     FILE *output = fopen("draw.ppm","w");
     assert(output != NULL);
     ppm_write(&surf,output);
