@@ -306,18 +306,7 @@ void cercle(SURFACE *s,int r, int centreX, int centreY,struct Pixel couleur){
     }
 }
 
-void courbe_bezier(SURFACE *s,struct Point P1,struct Point P2,struct Point P3,struct Point P4, int N,struct Pixel couleur){
-    for(double t=0;t<1;t+=1.0/N){
-        double x= P1.x*pow((1-t),3) + 3*P2.x*t*pow((1-t),2)+ 3*P3.x*pow(t,2)*(1-t) + P4.x*pow(t,3);
-        double y= P1.y*pow((1-t),3) + 3*P2.y*t*pow((1-t),2)+ 3*P3.y*pow(t,2)*(1-t) + P4.y*pow(t,3);
-        struct Point p;
-        p.x = x;
-        p.y = y;
-        draw_point(s,p,couleur);
-    }
-}
-
-void courbe_bezier_epaisse(SURFACE *s, struct Point P1, struct Point P2, struct Point P3, struct Point P4, int N, struct Pixel couleur, int largeur) {
+void courbe_bezier(SURFACE *s, struct Point P1, struct Point P2, struct Point P3, struct Point P4, int N, struct Pixel couleur, int epaisseur) {
     for (double t = 0; t < 1; t += 1.0 / N) {
         double x = P1.x * pow((1 - t), 3) + 3 * P2.x * t * pow((1 - t), 2) + 3 * P3.x * pow(t, 2) * (1 - t) + P4.x * pow(t, 3);
         double y = P1.y * pow((1 - t), 3) + 3 * P2.y * t * pow((1 - t), 2) + 3 * P3.y * pow(t, 2) * (1 - t) + P4.y * pow(t, 3);
@@ -325,8 +314,8 @@ void courbe_bezier_epaisse(SURFACE *s, struct Point P1, struct Point P2, struct 
         p.x = x;
         p.y = y;
         
-        for (int i = -largeur; i <= largeur; i++) {
-            for (int j = -largeur; j <= largeur; j++) {
+        for (int i = -epaisseur; i <= epaisseur; i++) {
+            for (int j = -epaisseur; j <= epaisseur; j++) {
                 struct Point offset;
                 offset.x = p.x + i;
                 offset.y = p.y + j;
@@ -335,7 +324,6 @@ void courbe_bezier_epaisse(SURFACE *s, struct Point P1, struct Point P2, struct 
         }
     }
 }
-
 
 void fill_vert(SURFACE *s, struct Pixel targetColor, struct Pixel fillColor, int startX, int endX,int startY, int endY) {
     for (int x = startX; x < endX; x++) {
@@ -403,22 +391,6 @@ void remplir(SURFACE *s,struct Pixel color, struct Point p_act){
 }
 
 
-// void apply_perlin_noise(SURFACE *s, struct Pixel targetColor, int startY, int endY,float freq,int depth) {
-//     for (int y = startY; y < endY; y++) {
-//         for (int x = 0; x < s->width; x++) {
-//             struct Pixel *currentPixel = &s->data[y * s->width + x];
-//             if (currentPixel->red == targetColor.red && currentPixel->green == targetColor.green && currentPixel->blue == targetColor.blue) {
-//                 float noise = perlin2d(x, y, freq, depth);
-//                 currentPixel->red = ((unsigned int)((1+noise)*127.5) + currentPixel->red)/2;
-//                 currentPixel->green = ((unsigned int)((1+noise)*127.5) + currentPixel->green)/2;
-//                 currentPixel->blue = ((unsigned int)((1+noise)*127.5) + currentPixel->blue)/2;
-//             }
-//         }
-//     }
-// }
-
-    
-
 int main(){
     SURFACE surf;
     surface(&surf,1000,1000);
@@ -435,20 +407,32 @@ int main(){
     struct Pixel grey = {125,125,125};
     struct Pixel brown = {97,51,10};
 
+    // Mousse eau
     struct Point P1 = {0,701}; struct Point P2 = {196,728}; struct Point P3 = {280,802}; struct Point P4 = {385,726}; struct Point P5 = {527,678}; struct Point P6 = {583,768}; struct Point P7 = {735,654}; struct Point P8 = {787,614}; struct Point P9 = {930,724}; struct Point P10 = {1000,591};
-    struct Point P11 = {0,696}; struct Point P12 = {174,664}; struct Point P13 = {282,718}; struct Point P14 = {385,721};
-    struct Point P15 = {230,689}; struct Point P16 = {230,679}; struct Point P17 = {270,679}; struct Point P18 = {270,689}; struct Point P19 = {230,699}; struct Point P20 = {270,699}; 
     
-    struct Point I1 = {529,457}; struct Point I2 = {529,407}; struct Point I3 = {799,409}; struct Point I4 = {799,469}; struct Point I5 = {519,447}; struct Point I6 = {519,397}; struct Point I7 = {809,399}; struct Point I8 = {809,459}; 
-    struct Point R1 = {249,687}; struct Point R2 = {635,441}; struct Point R3 = {602,364};
-    struct Point L1 = {550,449}; struct Point L2 = {760,449};
+    // Sphères eau
+    
+    struct Point P11 = {230,689}; struct Point P12 = {230,679}; struct Point P13 = {270,679}; struct Point P14 = {270,689}; struct Point P15 = {230,699}; struct Point P16 = {270,699}; 
+    struct Point R1 = {249,687};
+
+    // Remplissage eau
+
     struct Point P21 = {0,450};
     struct Point P22 = {999,750};
+
+    // Ile
+
+    struct Point I1 = {529,457}; struct Point I2 = {529,407}; struct Point I3 = {799,409}; struct Point I4 = {799,469}; struct Point I5 = {519,447}; struct Point I6 = {519,397}; struct Point I7 = {809,399}; struct Point I8 = {809,459}; 
+    struct Point R2 = {635,441};
+    struct Point L1 = {550,449}; struct Point L2 = {760,449};
+
+    // Arbre
 
     struct Point P23 = {608,408};
     struct Point P24 = {572,287};
     struct Point P25 = {595,289};
     struct Point P26 = {618,409};
+    struct Point R3 = {602,364};
 
     // Remplissage du ciel avec dégradé
     fill(&surf,sky);
@@ -456,30 +440,31 @@ int main(){
 
     // Création d'un rectangle pour le sable
     draw_rectangle(&surf,0,450,1000,1000,sand);
+    courbe_bezier(&surf,S1,S2,S3,S4,5000,brown,1);
 
     // Tracé du bord de l'eau
-    courbe_bezier_epaisse(&surf,P1,P2,P3,P4,5000,foam,10);
-    courbe_bezier_epaisse(&surf,P4,P5,P6,P7,5000,foam,10);
-    courbe_bezier_epaisse(&surf,P7,P8,P9,P10,5000,foam,10);
+    courbe_bezier(&surf,P1,P2,P3,P4,5000,foam,10);
+    courbe_bezier(&surf,P4,P5,P6,P7,5000,foam,10);
+    courbe_bezier(&surf,P7,P8,P9,P10,5000,foam,10);
+
+    // Tracé de l'île
+    courbe_bezier(&surf,I1,I2,I3,I4,5000,sand,10);
+    courbe_bezier(&surf,I5,I6,I7,I8,5000,brown,5);
+    draw_line(&surf,L1,L2,sand);
+    remplir(&surf,sand,R2);
+
+    // Tracé de l'arbre
+    courbe_bezier(&surf,P23,P24,P25,P26,5000,brown,1);
+    remplir(&surf,brown,R3);   
 
     // Remplissage de l'eau et dégradé
     fill_vert(&surf,foam,water1,0,1000,450,1000);
     degrade_vers_blanc_bas(&surf,P21,P22,150,water1);
 
     // Sphères à la surface de l'eau
-    courbe_bezier(&surf,P15,P16,P17,P18,5000,light_water);
-    courbe_bezier(&surf,P15,P19,P20,P18,5000,light_water);
+    courbe_bezier(&surf,P11,P12,P13,P14,5000,light_water,1);
+    courbe_bezier(&surf,P11,P15,P16,P14,5000,light_water,1);
     remplir(&surf,light_water,R1);
-
-    // Tracé de l'île
-    courbe_bezier_epaisse(&surf,I5,I6,I7,I8,5000,brown,5);
-    courbe_bezier_epaisse(&surf,I1,I2,I3,I4,5000,sand,10);
-    draw_line(&surf,L1,L2,sand);
-    remplir(&surf,sand,R2);
-    
-    // Tracé de l'arbre
-    courbe_bezier(&surf,P23,P24,P25,P26,5000,brown);
-    remplir(&surf,  brown,R3);   
 
     // Ecriture dans le fichier 
 
