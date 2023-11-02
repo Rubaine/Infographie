@@ -391,6 +391,13 @@ void remplir(SURFACE *s,struct Pixel color, struct Point p_act){
 }
 
 
+void trace_feuille(SURFACE *s,struct Point center,struct Point end, struct Point P1,struct Point P2,struct Point P3,struct Point P4,struct Pixel color,struct Point R){
+    courbe_bezier(s,center,P1,P2,end,5000,color,1);
+    courbe_bezier(s,center,P3,P4,end,5000,color,1);
+    remplir(s,color,R);
+}
+
+
 int main(){
     SURFACE surf;
     surface(&surf,1000,1000);
@@ -406,6 +413,7 @@ int main(){
     struct Pixel light_water = {225,225,255};
     struct Pixel grey = {125,125,125};
     struct Pixel brown = {97,51,10};
+    struct Pixel green = {10,240,4};
 
     // Mousse eau
     struct Point P1 = {0,701}; struct Point P2 = {196,728}; struct Point P3 = {280,802}; struct Point P4 = {385,726}; struct Point P5 = {527,678}; struct Point P6 = {583,768}; struct Point P7 = {735,654}; struct Point P8 = {787,614}; struct Point P9 = {930,724}; struct Point P10 = {1000,591};
@@ -433,6 +441,34 @@ int main(){
     struct Point P25 = {595,289};
     struct Point P26 = {618,409};
     struct Point R3 = {602,364};
+    struct Point F1 = {589,319};
+    struct Point F2 = {628,328};
+    struct Point F3 = {643,365};
+    struct Point F4 = {642,381};
+    struct Point F5 = {625,351};
+    struct Point F6 = {614,351};
+    struct Point R4 = {615,334};
+
+    struct Point F7 = {585,328};
+    struct Point F8 = {570,345};
+    struct Point F9 = {565,380};
+    struct Point F10 = {565,328};
+    struct Point F11 = {555,345};
+    struct Point R5 = {569,343};
+
+    struct Point F12 = {630,305};
+    struct Point F13 = {645,315};
+    struct Point F14 = {666,330};
+    struct Point F15 = {630,325};
+    struct Point F16 = {645,330};
+    struct Point R6 = {630,323};
+
+    struct Point F17 = {580,310};
+    struct Point F18 = {548,310};
+    struct Point F19 = {523,345};
+    struct Point F20 = {580,325};
+    struct Point F21 = {540,320};
+    struct Point R7 = {566,319};
 
     // Remplissage du ciel avec dégradé
     fill(&surf,sky);
@@ -440,7 +476,7 @@ int main(){
 
     // Création d'un rectangle pour le sable
     draw_rectangle(&surf,0,450,1000,1000,sand);
-    courbe_bezier(&surf,S1,S2,S3,S4,5000,brown,1);
+    //courbe_bezier(&surf,S1,S2,S3,S4,5000,brown,1);
 
     // Tracé du bord de l'eau
     courbe_bezier(&surf,P1,P2,P3,P4,5000,foam,10);
@@ -455,7 +491,11 @@ int main(){
 
     // Tracé de l'arbre
     courbe_bezier(&surf,P23,P24,P25,P26,5000,brown,1);
-    remplir(&surf,brown,R3);   
+    remplir(&surf,brown,R3);
+    trace_feuille(&surf,F1,F4,F2,F3,F5,F6,green,R4);
+    trace_feuille(&surf,F1,F9,F7,F8,F10,F11,green,R5);
+    trace_feuille(&surf,F1,F14,F12,F13,F15,F16,green,R6);
+    trace_feuille(&surf,F1,F19,F17,F18,F20,F21,green,R7);
 
     // Remplissage de l'eau et dégradé
     fill_vert(&surf,foam,water1,0,1000,450,1000);
