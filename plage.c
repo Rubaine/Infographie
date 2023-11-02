@@ -397,6 +397,26 @@ void trace_feuille(SURFACE *s,struct Point center,struct Point end, struct Point
     remplir(s,color,R);
 }
 
+void courbe_bezier_3Pt(SURFACE *s,struct Point P1,struct Point P2,struct Point P3,struct Pixel couleur,int N,int epaisseur){
+        for (double t = 0; t < 1; t += 1.0 / N) {
+        double x = P1.x * pow((1 - t),2) + 2 * P2.x * t * (1 - t) + P3.x * pow(t,2);
+        double y = P1.y * pow((1 - t),2) + 2 * P2.y * t * (1 - t) + P3.y * pow(t,2);
+        struct Point p;
+        p.x = x;
+        p.y = y;
+        
+        for (int i = -epaisseur; i <= epaisseur; i++) {
+            for (int j = -epaisseur; j <= epaisseur; j++) {
+                struct Point offset;
+                offset.x = p.x + i;
+                offset.y = p.y + j;
+                draw_point(s, offset, couleur);
+            }
+        }
+    }
+}
+
+
 
 int main(){
     SURFACE surf;
@@ -414,7 +434,7 @@ int main(){
     struct Pixel grey = {125,125,125};
     struct Pixel brown = {97,51,10};
     struct Pixel green = {10,240,4};
-
+    struct Pixel yellow = {240,234,4};
     // Mousse eau
     struct Point P1 = {0,701}; struct Point P2 = {196,728}; struct Point P3 = {280,802}; struct Point P4 = {385,726}; struct Point P5 = {527,678}; struct Point P6 = {583,768}; struct Point P7 = {735,654}; struct Point P8 = {787,614}; struct Point P9 = {930,724}; struct Point P10 = {1000,591};
     
@@ -470,6 +490,20 @@ int main(){
     struct Point F21 = {540,320};
     struct Point R7 = {566,319};
 
+    struct Point F22 = {590,278};
+    struct Point F23 = {612,287};
+    struct Point F24 = {638,298};
+    struct Point F25 = {600,293};
+    struct Point F26 = {607,300};
+    struct Point R8  = {605,293};
+
+    //Soleil
+    struct Point L3 = {900,0};
+    struct Point L4 ={999,0};
+    struct Point L5 = {999,99};
+    struct Point L6 = {900,99};
+    struct Point R9 = {958,52};
+
     // Remplissage du ciel avec dégradé
     fill(&surf,sky);
     linear_gradient(sky,sky2,0,0,&surf);
@@ -496,6 +530,7 @@ int main(){
     trace_feuille(&surf,F1,F9,F7,F8,F10,F11,green,R5);
     trace_feuille(&surf,F1,F14,F12,F13,F15,F16,green,R6);
     trace_feuille(&surf,F1,F19,F17,F18,F20,F21,green,R7);
+    trace_feuille(&surf,F1,F24,F22,F23,F25,F26,green,R8);
 
     // Remplissage de l'eau et dégradé
     fill_vert(&surf,foam,water1,0,1000,450,1000);
@@ -506,6 +541,11 @@ int main(){
     courbe_bezier(&surf,P11,P15,P16,P14,5000,light_water,1);
     remplir(&surf,light_water,R1);
 
+    //Soleil
+    draw_line(&surf,L3,L4,yellow);
+    draw_line(&surf,L4,L5,yellow);
+    courbe_bezier_3Pt(&surf,L3,L6,L5,yellow,5000,1);
+    remplir(&surf,yellow,R9);
     // Ecriture dans le fichier 
 
     FILE *output = fopen("draw.ppm","w");
