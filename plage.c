@@ -487,7 +487,18 @@ int main(){
     remplir(&surf,sand3,point(99,924),1);
     // courbe_bezier_3Pt(&surf,S21,S22,S23,sand2,5000,0);
     
-
+    //Parasol
+    
+    Pixel red = {250,15,30};
+    Pixel dark_red = {150,5,0};
+    courbe_bezier_3Pt(&surf,point(717,791),point(778,680),point(847,793),red,5000,1);
+    courbe_bezier_3Pt(&surf,point(717,791),point(778,810),point(847,793),dark_red,5000,1);
+    courbe_bezier_3Pt(&surf,point(717,791),point(778,748),point(847,793),red,5000,1);
+    remplir(&surf,red,point(776,757),1);
+    remplir(&surf,dark_red,point(777,788),0);
+    draw_line(&surf,point(778,879),point(778,760),red);
+    draw_line(&surf,point(779,879),point(779,760),red);
+    draw_line(&surf,point(777,879),point(777,760),red);
     // Ecriture dans le fichier 
 
     FILE *output = fopen("draw.ppm","w");
