@@ -492,6 +492,12 @@ void courbe_bezier_3Pt(SURFACE *s, struct Point P1, struct Point P2, struct Poin
     }
 }
 
+void cercle_rempli(SURFACE *s, int r, int centreX, int centreY, struct Pixel couleur)
+{
+    cercle(s,r,centreX,centreY,couleur);
+    remplir(s,couleur,point(centreX,centreY),1);
+}
+
 int main()
 {
     SURFACE surf;
@@ -512,11 +518,14 @@ int main()
     Pixel white = {225, 225, 255};
     Pixel grey = {125, 125, 125};
     Pixel brown = {97, 51, 10};
+    Pixel light_brown = {147, 101, 60};
     Pixel green = {10, 240, 4};
     Pixel yellow = {240, 234, 4};
     Pixel red = {250, 15, 30};
     Pixel dark_red = {150, 5, 0};
     Pixel vert = {73, 166, 59};
+    Pixel black = {0,0,0};
+    Pixel light_blue = {150,152,254};
 
     // Remplissage du ciel avec dégradé
 
@@ -587,7 +596,6 @@ int main()
     draw_line(&surf, point(1, 999), point(390, 999), sand, 1);
     remplir(&surf, sand, point(99, 924), 1);
     // courbe_bezier_3Pt(&surf,S21,S22,S23,dark_sand,5000,0);
-
     // Parasol
 
     courbe_bezier_3Pt(&surf, point(717, 791), point(778, 680), point(847, 793), red, 5000, 1);
@@ -619,6 +627,35 @@ int main()
     remplir(&surf, red, point(897, 876), 0);
     remplir(&surf, red, point(910, 863), 0);
 
+    //Ballon
+    courbe_bezier_3Pt(&surf,point(401,826),point(381,856),point(401,886),light_blue,5000,1);
+    courbe_bezier_3Pt(&surf,point(409,826),point(429,856),point(409,886),red,5000,1);
+    cercle(&surf,32,405,856,black);
+    remplir(&surf,red,point(429,857),0);
+    remplir(&surf,light_blue,point(407,856),0);
+    remplir(&surf,white,point(380,855),0);
+    
+    //Bateau
+    draw_line(&surf,point(160,449),point(147,420),light_brown,1);
+    draw_line(&surf,point(230,449),point(243,420),light_brown,1);
+    draw_line(&surf,point(160,449),point(230,449),light_brown,1);
+    draw_line(&surf,point(147,420),point(243,420),light_brown,1);
+    remplir(&surf,light_brown,point(197,434),1);
+    draw_line(&surf,point(195,422),point(195,375),light_brown,3);
+    draw_triangle(&surf,point(198,377),point(198,414),point(243,414),foam);
+    draw_triangle(&surf,point(194,377),point(194,414),point(149,414),foam);
+    remplir(&surf,foam,point(181,403),1);
+    remplir(&surf,foam,point(211,403),1);
+    cercle(&surf,6,166,429,light_blue);
+    remplir(&surf,light_blue,point(166,430),1);
+
+    //Nuage
+    //cercle_rempli(&surf,15,139,110,foam);
+    //cercle_rempli(&surf,18,152,98,foam);
+    //cercle_rempli(&surf,18,177,107,foam);
+
+    //cercle_rempli(&surf,23,402,164,foam);
+    //cercle_rempli(&surf,17,425,150,foam);
     // Ecriture dans le fichier
 
     FILE *output = fopen("draw.ppm", "w");
