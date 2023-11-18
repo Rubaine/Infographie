@@ -713,12 +713,6 @@ int main()
     courbe_bezier(&surf, point(723, 573), point(759, 582), point(892, 558), point(1000, 494), 5000, water, 0);
     remplir(&surf, water, point(379, 519), 0);
 
-    // Sphères à la surface de l'eau
-
-    // courbe_bezier(&surf, point(230, 689), point(230, 679), point(270, 679), point(270, 689), 5000, white, 1);
-    // courbe_bezier(&surf, point(230, 689), point(230, 699), point(270, 699), point(270, 689), 5000, white, 1);
-    // remplir(&surf, white, point(249, 687), 1);
-
     // Soleil
 
     draw_line(&surf, point(900, 0), point(999, 0), yellow, 1);
