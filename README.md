@@ -20,4 +20,4 @@ Le produit sera fournit sous forme d'une archive au format «zip » (exclusiveme
 
 ## Exécution
 
-Compiler et exécuter le fichier _plage.c_. Ouvrir le fichier _plage.ppm_ dans gimp.
+Compiler et exécuter le fichier _plage.c_. Ouvrir le fichier _draw.ppm_ dans gimp.
